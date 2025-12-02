@@ -49,12 +49,15 @@ library(kableExtra) # optional but makes it prettier
 ```
 
 ```{r, include=FALSE}
-# Import humpback detection data with calculations
+# Import humpback detection data with GIS calculations
 hbk <- read_csv("data/GISCALC_HUWH_AroundSTX2025.csv")
+
+# Import background mission data
+bkg <- read_csv("data/erddap_UVI2_Around_STX_20250306.csv")
 ```
 
 ```{r, include=FALSE}
-# Vector of environmental variables to summarize for detections (*EXCLUDE glider depth because not really an environmental variable)
+# Vector of environmental variables to summarize for table (*EXCLUDE glider depth because not really an environmental variable)
 env_vars <- c(
   "Water_temperature_C",
   "Salinity_PSU",
@@ -66,7 +69,7 @@ env_vars <- c(
 ```
 
 ```{r, include=FALSE}
-# Create summary table dataframe
+# Create DETECTIONS summary table dataframe
 env_summary <- hbk %>%
   select(all_of(env_vars)) %>%
   pivot_longer(
@@ -99,9 +102,8 @@ env_summary <- hbk %>%
 # Reorder rows for table
 env_summary <- env_summary %>%
   mutate(
-    Variable = factor(
-      Variable,
-      levels = c(
+    Variable = factor(Variable,
+    levels = c(
         "Water Temperature (°C)",
         "Salinity (PSU)",
         "Dissolved Oxygen Concentration (µmol/L)",
@@ -114,117 +116,44 @@ env_summary <- env_summary %>%
   arrange(Variable)
 ```
 
-**Table 1.** \*WRITE CAPTION
-
-```{r, echo=FALSE}
-env_summary |>
-  kable(format = "html", digits = 2) |>
-  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
-```
-
 ```{r, include=FALSE}
-# Create custom color scheme for oceanographic variables
-custom_colors <- c(
-  Water_temperature_C = "#640191",
-  Salinity_PSU = "#1307f7",
-  Oxygen_concentration_µmol_L = "#a268dd",
-  RASTERDEPTH_m = "#d845aa",
-  RASTERSLOPE_deg = "#f16c4b",
-  NEAR_DIST = "#ffa100"
-)
-```
-
-```{r, include=FALSE}
-# Create vector of clean variable names
-clean_var_names <- c(
-  Water_temperature_C = "Water Temperature (°C)",
-  Salinity_PSU = "Salinity (PSU)",
-  Oxygen_concentration_µmol_L = "Dissolved Oxygen Concentration (µmol/L)",
-  RASTERDEPTH_m = "Bathymetric Depth (m)",
-  RASTERSLOPE_deg = "Bathymetric Slope (°)",
-  NEAR_DIST = "Distance to Nearest Shoreline (m)"
-)
-```
-
-```{r, include=FALSE}
-# Pivot longer to create dataframe for plots
-plot_data <- hbk %>%
-  select(all_of(env_vars)) %>%
+# Create BACKGROUND summary table dataframe
+bkg_summary <- bkg %>%
+  select("Water_temperature_C", "Salinity_PSU", "Oxygen_concentration_µmol_L") %>%
   pivot_longer(
     cols = everything(),
-    names_to = "Variable",
+    names_to  = "Variable",
     values_to = "Value"
-  ) %>%
-  mutate(               # set order of variables in plots
-    Variable = factor(
-      Variable,
-      levels = c(
-        "Water_temperature_C",
-        "Salinity_PSU",
-        "Oxygen_concentration_µmol_L",
-        "RASTERDEPTH_m",
-        "RASTERSLOPE_deg",
-        "NEAR_DIST"
+    ) %>%
+  group_by(Variable) %>%
+  summarise(
+    n     = sum(!is.na(Value)),
+    Mean  = mean(Value, na.rm = TRUE),
+    SEM   = sd(Value, na.rm = TRUE) / sqrt(n),
+    SD    = sd(Value, na.rm = TRUE),
+    Min   = min(Value, na.rm = TRUE),
+    Max   = max(Value, na.rm = TRUE),
+    .groups = "drop"
+    ) %>%
+  mutate(
+    Variable = case_when(
+      Variable == "Water_temperature_C" ~ "Water Temperature (°C)",
+      Variable == "Salinity_PSU" ~ "Salinity (PSU)",
+      Variable == "Oxygen_concentration_µmol_L" ~ "Dissolved Oxygen Concentration (µmol/L)",
+      TRUE ~ Variable
       )
     )
-  )
+
+# Reorder rows for table
+bkg_summary <- bkg_summary %>%
+  mutate(
+    Variable = factor(Variable,
+    levels = c(
+      "Water Temperature (°C)",
+      "Salinity (PSU)",
+      "Dissolved Oxygen Concentration (µmol/L)"
+      )
+    )
+  ) %>%
+  arrange(Variable)
 ```
-
-```{r, echo=FALSE}
-# Create multipanel (faceted) box plot
-box_plot <- ggplot(plot_data,
-                       aes(x = Variable, y = Value, color = Variable, fill  = Variable)) +
-  geom_boxplot(alpha = 0.3, width = 0.6, outlier.alpha = 0.6, outlier.size = 1.5) +
-  facet_wrap(
-    ~ Variable,
-    scales = "free",
-    ncol   = 3,
-    labeller = labeller(Variable = function(x) stringr::str_wrap(clean_var_names[x], width = 18))
-  ) +
-  scale_color_manual(values = custom_colors) +
-  scale_fill_manual(values  = custom_colors) +
-  labs(
-    title = NULL,
-    x = NULL,
-    y = "Value"
-  ) +
-  theme_minimal(base_size = 13) +
-  theme(
-    strip.text   = element_text(face = "bold"),
-    axis.text.x  = element_blank(),
-    axis.ticks.x = element_blank(),
-    axis.title.y = element_text(face = "bold"),
-    legend.position = "none"
-  )
-box_plot
-```
-
-**Fig. 2**. \*WRITE CAPTION
-
-```{r, echo=FALSE}
-# Create multipanel (faceted) density plot
-density_plot <- ggplot(plot_data, 
-                           aes(x = Value, color = Variable, fill = Variable)) +
-  geom_density(linewidth = 1, alpha = 0.25) +
-  facet_wrap(
-    ~ Variable,
-    scales = "free", ncol = 3,
-    labeller = labeller(Variable = function(x) stringr::str_wrap(clean_var_names[x], width = 18))
-  ) +
-  scale_color_manual(values = custom_colors) +
-  scale_fill_manual(values = custom_colors) +
-  labs(
-    title = NULL,
-    x = NULL,
-    y = "Density"
-  ) +
-  theme_minimal(base_size = 13) +
-  theme(
-    strip.text = element_text(face = "bold"),
-    axis.title.y = element_text(face = "bold"),
-    legend.position = "none"  # hides legend (each facet already labeled)
-  )
-density_plot
-```
-
-**Fig. 3.** \*WRITE CAPTION
