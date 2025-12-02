@@ -78,8 +78,8 @@ env_vars <- c(
 ```
 
 ```{r, include=FALSE}
-# Create DETECTIONS summary table dataframe
-env_summary <- hbk %>%
+# Create DETECTIONS summary table dataframe WITH OUTLIERS
+hbk_summary_outliers <- hbk %>%
   select(all_of(env_vars)) %>%
   pivot_longer(
     cols = everything(),
@@ -109,7 +109,7 @@ env_summary <- hbk %>%
   )
 
 # Reorder rows for table
-env_summary <- env_summary %>%
+hbk_summary_outliers <- hbk_summary_outliers %>%
   mutate(
     Variable = factor(Variable,
     levels = c(
@@ -125,12 +125,12 @@ env_summary <- env_summary %>%
   arrange(Variable)
 
 # Export as CSV
-write_csv(env_summary, "data/output_summary_tables/env_summary.csv")
+write_csv(hbk_summary_outliers, "data/output_summary_tables/hbk_summary_outliers.csv")
 ```
 
 ```{r, include=FALSE}
-# Create BACKGROUND summary table dataframe
-bkg_summary <- bkg %>%
+# Create BACKGROUND summary table dataframe *WITH OUTLIERS*
+bkg_summary_outliers <- bkg %>%
   select("Water_temperature_C", "Salinity_PSU", "Oxygen_concentration_µmol_L") %>%
   pivot_longer(
     cols = everything(),
@@ -157,7 +157,7 @@ bkg_summary <- bkg %>%
     )
 
 # Reorder rows for table
-bkg_summary <- bkg_summary %>%
+bkg_summary_outliers <- bkg_summary_outliers %>%
   mutate(
     Variable = factor(Variable,
     levels = c(
@@ -170,8 +170,29 @@ bkg_summary <- bkg_summary %>%
   arrange(Variable)
 
 # Export as CSV
-write_csv(bkg_summary, "data/output_summary_tables/bkg_summary.csv")
+write_csv(bkg_summary_outliers, "data/output_summary_tables/bkg_summary_outliers.csv")
 ```
+
+k
+
+```{r, include=FALSE}
+# Remove BACKGROUND outliers
+bkg_CLEAN <- bkg %>%
+  mutate(
+    Salinity_PSU = if_else(
+      Salinity_PSU < 35,  # removes 1 row (sal = 26.23719) implausibly low reading since all other measurements between 35-38 PSU
+      NA_real_,           # set outlier cell to NA
+      Salinity_PSU        # keep original value in row for all other columns!
+    ),
+    Oxygen_concentration_µmol_L = if_else(
+      Oxygen_concentration_µmol_L < 100,  # removes 4 rows (oxy = 0.0000) that all have glider depth < 0.08 aka glider was at surface and sensor was out of water 
+      NA_real_,
+      Oxygen_concentration_µmol_L
+    )
+  )
+```
+
+k
 
 ```{r, include=FALSE}
 # Join env and background summaries by Variable
@@ -335,7 +356,7 @@ boxplot_COMBINED <- ggplot() +
 boxplot_COMBINED
 
 # Export plot as PNG
-ggsave("data/figures/boxplot.png", boxplot_COMBINED, width = 8, height = 6, dpi = 800)
+ggsave("figures/box_plot.png", boxplot_COMBINED, width = 8, height = 6, dpi = 800)
 ```
 
 **Fig. 2.** \*WRITE CAPTION
@@ -378,6 +399,9 @@ density_COMBINED <- ggplot() +
     axis.ticks.x = element_blank()
   )
 density_COMBINED
+
+# Export plot as PNG
+ggsave("figures/density_plot.png", density_COMBINED, width = 8, height = 6, dpi = 800)
 ```
 
 **Fig. 3.** \*WRITE CAPTION
