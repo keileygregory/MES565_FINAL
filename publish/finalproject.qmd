@@ -14,7 +14,7 @@ bibliography: references.bib
 
 ***COMMAND F \* FOR FIXES***
 
-Humpback whale (Megaptera novaeangliae)
+Humpback whale (*Megaptera novaeangliae*)
 
 short background on:
 
@@ -32,11 +32,11 @@ future research - study will use data from more missions in different areas, com
 
 short overview of findings from map (where detections clustered, geomorph type, etc.)
 
-arc map
-
-link to interactive map
+![](images/MES565_FINAL_layout_25mb.jpg)
 
 **Fig. 1.** \*WRITE CAPTION
+
+\*link to interactive map
 
 # Oceanographic Conditions
 
