@@ -159,7 +159,7 @@ table, .table, table th, table td {
 
 /* Style the Quarto title block that is generated from YAML `title:` */
 #title-block-header.quarto-title-block {
-  background: linear-gradient(90deg, #ff8fe1, #d269ff, #a58cff, #6669ff, #30a2ff, #00c6c9);
+  background: linear-gradient(90deg, #61297b, #3027e1, #791bd8, #d73dc1, #e66e55, #e4a673);
   padding: 10px 10px;
   border-radius: 10px;
   margin-bottom: 20px;
@@ -171,7 +171,7 @@ table, .table, table th, table td {
   color: black;
   margin: 0;
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.04em;
 }
 
@@ -209,8 +209,8 @@ main h1, main h2, main h3, main h4 {
 
 /* Level 1 section headings WITH gradient background */
 main h1 {
-  background: linear-gradient(90deg, #ffd1f2, #e8baff, #d6ceff, #c3c7ff, #b8deff, #b3f4f5);
-  color: black !important;      /* readable over gradients */
+  background: linear-gradient(90deg, #61297b, #3027e1, #791bd8, #d73dc1, #e66e55, #e4a673);
+  color: white !important;      /* readable over gradients */
   padding: 10px 14px;
   border-radius: 10px;
   margin-top: 2rem;
@@ -243,4 +243,39 @@ main h4 {
   border-bottom: 2px solid #e0e4ff;
   padding-bottom: 4px;
   margin-top: 1.2rem;
+}
+
+/* ======================================
+   TITLE TEXT BACKGROUND BOX (TRANSPARENT)
+   ====================================== */
+
+/* Box behind ONLY the YAML <h1> title */
+#title-block-header .quarto-title h1.title {
+  background: rgba(255, 255, 255, 0.75);  /* translucent white */
+  padding: 14px 18px;
+  border-radius: 12px;
+  display: inline-block;    /* keeps it as a nicely sized box */
+  backdrop-filter: blur(3px);   /* soft blur for glassy effect */
+}
+
+#title-block-header .quarto-title h1.title {
+  color: black !important;
+  font-weight: 900 !important;
+}
+
+/* ======================================
+   OVERRIDES FOR TITLE METADATA COLORS
+   ====================================== */
+
+/* Labels: "Author" / "Published" */
+#title-block-header .quarto-title-meta .quarto-title-meta-heading {
+  color: lightgrey !important;
+  font-weight: 700;
+}
+
+/* Values: "Keiley Gregory" / "December 1, 2025" */
+#title-block-header .quarto-title-meta .quarto-title-meta-contents,
+#title-block-header .quarto-title-meta .quarto-title-meta-contents p,
+#title-block-header .quarto-title-meta .quarto-title-meta-contents .date {
+  color: #ffffff !important;
 }

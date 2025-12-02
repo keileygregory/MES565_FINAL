@@ -130,12 +130,12 @@ env_summary |>
 ```{r, include=FALSE}
 # Create custom color scheme for oceanographic variables
 custom_colors <- c(
-  Water_temperature_C = "#ff59d3",
-  Salinity_PSU = "#9d00e0",
-  Oxygen_concentration_µmol_L = "#a58cff",
-  RASTERDEPTH_m = "#0509fa",
-  RASTERSLOPE_deg = "#30a2ff",
-  NEAR_DIST = "#00c6c9"
+  Water_temperature_C = "#640191",
+  Salinity_PSU = "#1307f7",
+  Oxygen_concentration_µmol_L = "#a852ff",
+  RASTERDEPTH_m = "#d73dc1",
+  RASTERSLOPE_deg = "#cc3c1f",
+  NEAR_DIST = "#ffb67a"
 )
 ```
 
