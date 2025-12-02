@@ -32,8 +32,6 @@ future research - study will use data from more missions in different areas, com
 
 short overview of findings from map (where detections clustered, geomorph type, etc.)
 
-![](images/MES565_FINAL_layout_25mb.jpg)
-
 **Fig. 1.** \*WRITE CAPTION
 
 \*link to interactive map
