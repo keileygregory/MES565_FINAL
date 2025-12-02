@@ -1,2 +1,4 @@
 erddap_UVI2_Around_STX_20250306.csv filter=lfs diff=lfs merge=lfs -text
 docs/data/erddap_UVI2_Around_STX_20250306.csv filter=lfs diff=lfs merge=lfs -text
+FIX_INTERPOLATION_CALCULATIONS_OUTLIERS/original_data_OUTLIERS/outliers_erddap_UVI2_Around_STX_20250306.csv filter=lfs diff=lfs merge=lfs -text
+*outliers_erddap_UVI2_Around_STX_20250306.csv filter=lfs diff=lfs merge=lfs -text
