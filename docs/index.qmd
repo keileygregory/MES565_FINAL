@@ -42,7 +42,7 @@ overview of findings for preferred oceanographic conditions
 
 ```{r, include=FALSE}
 library(tidyverse)
-library(ggridges) # for ridge plots
+library(ggridges)  # for ridge plots
 library(patchwork) # optional, for combining plots
 library(knitr)
 library(kableExtra) # optional but makes it prettier
@@ -57,36 +57,15 @@ bkg <- read_csv("data/erddap_UVI2_Around_STX_20250306.csv")
 ```
 
 ```{r, include=FALSE}
-# Rename relevant columns in BKG df so variable names match detections (HBK) df
-bkg <- bkg %>% rename(
-  "Water_temperature_C" = "water_temperature",
-  "Salinity_PSU" = "salinity",
-  "Oxygen_concentration_µmol_L" = "oxygen_concentration"
-  )
-```
-
-```{r, include=FALSE}
-# Vector of environmental variables to summarize for table (*EXCLUDE glider depth because not really an environmental variable)
-env_vars <- c(
-  "Water_temperature_C",
-  "Salinity_PSU",
-  "Oxygen_concentration_µmol_L",
-  "RASTERDEPTH_m",
-  "RASTERSLOPE_deg",
-  "NEAR_DIST"
-  )
-```
-
-```{r, include=FALSE}
-# Create DETECTIONS summary table dataframe WITH OUTLIERS
-hbk_summary_outliers <- hbk %>%
-  select(all_of(env_vars)) %>%
+# Create DETECTIONS summary table dataframe
+hbk_summary <- hbk %>%
+  select("Glider_depth_m", "Water_temperature_C", "Salinity_PSU", "Oxygen_concentration_µmol_L", "RASTERDEPTH_m", "RASTERSLOPE_deg", "NEAR_DIST") %>%
   pivot_longer(
     cols = everything(),
-    names_to  = "Variable",
+    names_to  = "Oceanographic_Variable",
     values_to = "Value"
   ) %>%
-  group_by(Variable) %>%
+  group_by(Oceanographic_Variable) %>%
   summarise(
     n     = sum(!is.na(Value)),
     Mean  = mean(Value, na.rm = TRUE),
@@ -97,47 +76,49 @@ hbk_summary_outliers <- hbk %>%
     .groups = "drop"
   ) %>%
   mutate(
-    Variable = case_when(
-      Variable == "Water_temperature_C" ~ "Water Temperature (°C)",
-      Variable == "Salinity_PSU" ~ "Salinity (PSU)",
-      Variable == "Oxygen_concentration_µmol_L" ~ "Dissolved Oxygen Concentration (µmol/L)",
-      Variable == "RASTERDEPTH_m" ~ "Bathymetric Depth (m)",
-      Variable == "RASTERSLOPE_deg" ~ "Bathymetric Slope (°)",
-      Variable == "NEAR_DIST" ~ "Distance to Nearest Shoreline (m)",
-      TRUE ~ Variable
+    Oceanographic_Variable = case_when(
+      Oceanographic_Variable == "Glider_depth_m" ~ "Glider Depth (m)",
+      Oceanographic_Variable == "Water_temperature_C" ~ "Water Temperature (°C)",
+      Oceanographic_Variable == "Salinity_PSU" ~ "Salinity (PSU)",
+      Oceanographic_Variable == "Oxygen_concentration_µmol_L" ~ "Dissolved Oxygen Concentration (µmol/L)",
+      Oceanographic_Variable == "RASTERDEPTH_m" ~ "Bathymetric Depth (m)",
+      Oceanographic_Variable == "RASTERSLOPE_deg" ~ "Bathymetric Slope (°)",
+      Oceanographic_Variable == "NEAR_DIST" ~ "Distance to Nearest Shoreline (m)",
+      TRUE ~ Oceanographic_Variable
     )
   )
 
 # Reorder rows for table
-hbk_summary_outliers <- hbk_summary_outliers %>%
+hbk_summary <- hbk_summary %>%
   mutate(
-    Variable = factor(Variable,
+    Oceanographic_Variable = factor(Oceanographic_Variable,
     levels = c(
-        "Water Temperature (°C)",
-        "Salinity (PSU)",
-        "Dissolved Oxygen Concentration (µmol/L)",
-        "Bathymetric Depth (m)",
-        "Bathymetric Slope (°)",
-        "Distance to Nearest Shoreline (m)"
+      "Glider Depth (m)",
+      "Water Temperature (°C)",
+      "Salinity (PSU)",
+      "Dissolved Oxygen Concentration (µmol/L)",
+      "Bathymetric Depth (m)",
+      "Bathymetric Slope (°)",
+      "Distance to Nearest Shoreline (m)"
       )
     )
   ) %>%
-  arrange(Variable)
+  arrange(Oceanographic_Variable)
 
 # Export as CSV
-write_csv(hbk_summary_outliers, "data/output_summary_tables/hbk_summary_outliers.csv")
+write_csv(hbk_summary, "data/output_summary_tables/hbk_summary.csv")
 ```
 
 ```{r, include=FALSE}
-# Create BACKGROUND summary table dataframe *WITH OUTLIERS*
-bkg_summary_outliers <- bkg %>%
-  select("Water_temperature_C", "Salinity_PSU", "Oxygen_concentration_µmol_L") %>%
+# Create BACKGROUND summary table dataframe
+bkg_summary <- bkg %>%
+  select("Glider_depth_m", "Water_temperature_C", "Salinity_PSU", "Oxygen_concentration_µmol_L") %>%
   pivot_longer(
     cols = everything(),
-    names_to  = "Variable",
+    names_to  = "Oceanographic_Variable",
     values_to = "Value"
     ) %>%
-  group_by(Variable) %>%
+  group_by(Oceanographic_Variable) %>%
   summarise(
     n     = sum(!is.na(Value)),
     Mean  = mean(Value, na.rm = TRUE),
@@ -148,65 +129,74 @@ bkg_summary_outliers <- bkg %>%
     .groups = "drop"
     ) %>%
   mutate(
-    Variable = case_when(
-      Variable == "Water_temperature_C" ~ "Water Temperature (°C)",
-      Variable == "Salinity_PSU" ~ "Salinity (PSU)",
-      Variable == "Oxygen_concentration_µmol_L" ~ "Dissolved Oxygen Concentration (µmol/L)",
-      TRUE ~ Variable
+    Oceanographic_Variable = case_when(
+      Oceanographic_Variable == "Glider_depth_m" ~ "Glider Depth (m)",
+      Oceanographic_Variable == "Water_temperature_C" ~ "Water Temperature (°C)",
+      Oceanographic_Variable == "Salinity_PSU" ~ "Salinity (PSU)",
+      Oceanographic_Variable == "Oxygen_concentration_µmol_L" ~ "Dissolved Oxygen Concentration (µmol/L)",
+      TRUE ~ Oceanographic_Variable
       )
     )
 
 # Reorder rows for table
-bkg_summary_outliers <- bkg_summary_outliers %>%
+bkg_summary <- bkg_summary %>%
   mutate(
-    Variable = factor(Variable,
+    Oceanographic_Variable = factor(Oceanographic_Variable,
     levels = c(
+      "Glider Depth (m)",
       "Water Temperature (°C)",
       "Salinity (PSU)",
       "Dissolved Oxygen Concentration (µmol/L)"
       )
     )
   ) %>%
-  arrange(Variable)
+  arrange(Oceanographic_Variable)
 
 # Export as CSV
-write_csv(bkg_summary_outliers, "data/output_summary_tables/bkg_summary_outliers.csv")
+write_csv(bkg_summary, "data/output_summary_tables/bkg_summary.csv")
 ```
 
-k
-
 ```{r, include=FALSE}
-# Remove BACKGROUND outliers
-bkg_CLEAN <- bkg %>%
-  mutate(
-    Salinity_PSU = if_else(
-      Salinity_PSU < 35,  # removes 1 row (sal = 26.23719) implausibly low reading since all other measurements between 35-38 PSU
-      NA_real_,           # set outlier cell to NA
-      Salinity_PSU        # keep original value in row for all other columns!
-    ),
-    Oxygen_concentration_µmol_L = if_else(
-      Oxygen_concentration_µmol_L < 100,  # removes 4 rows (oxy = 0.0000) that all have glider depth < 0.08 aka glider was at surface and sensor was out of water 
-      NA_real_,
-      Oxygen_concentration_µmol_L
-    )
-  )
-```
-
-k
-
-```{r, include=FALSE}
-# Join env and background summaries by Variable
-env_summary_diff <- env_summary %>%
+# Join hbk detection and bkg background mission summaries by Oceanographic_Variable col
+join_summary <- hbk_summary %>%
   left_join(bkg_summary %>% 
-              select(Variable, BKG_Mean = Mean), by = "Variable") %>%
-  mutate(`Mean Difference from Background` = 
-           sprintf("%+.5f", Mean - BKG_Mean))
+              select(
+                Oceanographic_Variable, 
+                "n Background" = n, 
+                "Background Conditions Mean" = Mean
+                ), 
+            by = "Oceanographic_Variable"
+            )
 ```
 
 ```{r, include=FALSE}
-# Reorder columns and remove "n" and "BKG_Mean" columns (*do NOT need to add '%>% select(- "n", - "BKG_Mean")' because Mean_bkg not included in first select code line so already removed from df)
-summary_table <- env_summary_diff %>%
-  select("Variable", "Mean", "SEM", "SD", "Min", "Max", "Mean Difference from Background")
+# Remove glider depth row (not included bc not really an oceanographic variable), calculate new `Difference in Means` col, rename Oceanographic_Variable col, and remove "n" and "BKG_Mean" columns + set col order
+summary_table <- join_summary %>%
+  filter(Oceanographic_Variable != "Glider Depth (m)") %>%
+  mutate(
+    `Difference in Means` = 
+      sprintf("%+.4f",  # sprintf("%+.4f") forces +/- sign and 4 decimal places
+              Mean - `Background Conditions Mean`
+              )
+    ) %>%
+  rename(
+    "Oceanographic Variable" = Oceanographic_Variable,
+    "Detection Conditions Mean" = Mean,
+    "Detection Conditions SEM" = SEM,
+    "Detection Conditions SD" = SD,
+    "Detection Conditions Min" = Min,
+    "Detection Conditions Max" = Max
+    ) %>%
+  select(
+    "Oceanographic Variable", 
+    "Detection Conditions Mean", 
+    "Detection Conditions SEM", 
+    "Detection Conditions SD", 
+    "Detection Conditions Min", 
+    "Detection Conditions Max", 
+    "Background Conditions Mean", 
+    "Difference in Means"
+    )
 
 # Export as CSV
 write_csv(summary_table, "data/output_summary_tables/summary_table.csv")
@@ -245,6 +235,18 @@ clean_var_names <- c(
 ```
 
 ```{r, include=FALSE}
+# Vector of environmental variables to summarize for table (*EXCLUDE glider depth because not really an environmental variable)
+env_vars <- c(
+  "Water_temperature_C",
+  "Salinity_PSU",
+  "Oxygen_concentration_µmol_L",
+  "RASTERDEPTH_m",
+  "RASTERSLOPE_deg",
+  "NEAR_DIST"
+  )
+```
+
+```{r, include=FALSE}
 # ❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
 # Only variables that exist in background
 env_vars_bkg <- c(
@@ -261,12 +263,12 @@ hbk_long <- hbk %>%
   select(all_of(env_vars_bkg)) %>%
   pivot_longer(
     cols = everything(),
-    names_to = "Variable",
+    names_to = "Oceanographic_Variable",
     values_to = "Value"
   ) %>%
   mutate(
-    Variable = factor(
-      Variable,
+    Oceanographic_Variable = factor(
+      Oceanographic_Variable,
       levels = c(
         "Water_temperature_C",
         "Salinity_PSU",
@@ -284,57 +286,47 @@ bkg_long <- bkg %>%
   select(all_of(env_vars_bkg)) %>%
   pivot_longer(
     cols = everything(),
-    names_to = "Variable",
+    names_to = "Oceanographic_Variable",
     values_to = "Value"
   ) %>%
   mutate(
-    Variable = factor(
-      Variable,
-      levels = levels(hbk_long$Variable) # same order as detections
+    Oceanographic_Variable = factor(
+      Oceanographic_Variable,
+      levels = levels(hbk_long$Oceanographic_Variable)  # *same order as detections
     )
   ) %>%
   filter(!is.na(Value)) # drop non-finite values
-
-# Remove BACKGROUND outliers for plot
-bkg_long_NOoutliers <- bkg_long %>%
-  mutate(Value = case_when(
-    Variable == "Salinity_PSU" & (Value < 35) ~ NA_real_,  # removes 1 row (sal = 26.23719) implausibly low reading since all other measurements between 35-38 PSU
-    Variable == "Oxygen_concentration_µmol_L" & (Value < 100) ~ NA_real_,  # removes 4 rows (oxy = 0.0000) that all have glider depth < 0.08 aka glider was at surface and sensor was out of water 
-    TRUE ~ Value
-    )
-  ) %>%
-  filter(!is.na(Value))
 ```
 
 ```{r, echo=FALSE}
 # Explicitly define order of boxes in each plot (detections on left, background on right)
 hbk_long$boxorder <- factor("Detection", levels = c("Detection", "Background"))
-bkg_long_NOoutliers$boxorder <- factor("Background", levels = c("Detection", "Background"))
+bkg_long$boxorder <- factor("Background", levels = c("Detection", "Background"))
 
 # Facted box plot
 boxplot_COMBINED <- ggplot() +
 # DETECTION box (colors by variable, keep outliers)
-  geom_boxplot(data = hbk_long, aes(x = boxorder, y = Value, fill = Variable, color = Variable),
+  geom_boxplot(data = hbk_long, aes(x = boxorder, y = Value, fill = Oceanographic_Variable, color = Oceanographic_Variable),
                width = 0.9,
                alpha = 0.45,
                outlier.alpha = 0.7,
                outlier.size = 1.5,
-               position = position_nudge(x = -0.01) # shift box slightly left
+               position = position_nudge(x = -0.01)  # shift box slightly left
  ) +
   # BACKGROUND box (all grey, remove outliers)
-  geom_boxplot(data = bkg_long_NOoutliers, aes(x = boxorder, y = Value),
+  geom_boxplot(data = bkg_long, aes(x = boxorder, y = Value),
                fill = "grey80",
                color = "grey40",
                width = 0.9,
                alpha = 0.45,
                outlier.shape = NA,
-               position = position_nudge(x = 0.01) # shift box slightly right
+               position = position_nudge(x = 0.01)  # shift box slightly right
  ) + 
   facet_wrap(
-    ~ Variable,
+    ~ Oceanographic_Variable,
     scales = "free_y",
     ncol = 3,
-    labeller = labeller(Variable = function(x) 
+    labeller = labeller(Oceanographic_Variable = function(x)
       stringr::str_wrap(clean_var_names[x], width = 18))
  ) + 
   scale_fill_manual(values = custom_colors, guide = "none") +
@@ -365,22 +357,28 @@ ggsave("figures/box_plot.png", boxplot_COMBINED, width = 8, height = 6, dpi = 80
 # Faceted desnity plot
 density_COMBINED <- ggplot() +
   # BACKGROUND density (grey)
-  geom_density(data = bkg_long_NOoutliers, aes(x = Value, y = after_stat(density)),
-    fill = "grey70",
-    color = "grey65",
-    alpha = 0.5,
-    linewidth = 0.65
+  geom_density(data = bkg_long, 
+               aes(x = Value, y = after_stat(density)),
+               fill = "grey70",
+               color = "grey65",
+               alpha = 0.5,
+               linewidth = 0.65
   ) +
   # DETECTION density (colored by variable)
-  geom_density(data = hbk_long, aes(x = Value, y = after_stat(density), fill = Variable, color = Variable),
-    alpha = 0.5,
-    linewidth = 0.75
+  geom_density(data = hbk_long, 
+               aes(x = Value, y = after_stat(density), fill = Oceanographic_Variable, color = Oceanographic_Variable),
+               alpha = 0.5,
+               linewidth = 0.75
   ) +
   facet_wrap(
-    ~ Variable,
+    ~ Oceanographic_Variable,
     scales = "free",
     ncol = 3,
-    labeller = labeller(Variable = function(x) stringr::str_wrap(clean_var_names[x], width = 18))
+    labeller = labeller(
+      Oceanographic_Variable = function(x) {
+        stringr::str_wrap(clean_var_names[x], width = 18)
+        }
+      )
   ) +
   scale_fill_manual(values = custom_colors, guide = "none") +
   scale_color_manual(values = custom_colors, guide = "none") +
